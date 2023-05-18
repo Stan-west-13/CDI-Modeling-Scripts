@@ -104,7 +104,7 @@ q <- g %>%
         non_asd = c(x["NA"], x_logit["NA"]),
         asd = c(x["ASD"], x_logit["ASD"])
     )
-    tbl$diff <- tbl$asd - tbl$non_asd
+    tbl$diff <- tbl$non_asd - tbl$asd
     return(tbl)
 }, .id = 'num_item_id') %>%
     mutate(num_item_id = as.numeric(num_item_id)) %>%
