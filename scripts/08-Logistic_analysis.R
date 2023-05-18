@@ -41,7 +41,7 @@ future::plan("multisession")
 with_progress({
     p <- progressor(steps = n_distinct(d$num_item_id))
     g$m <- d %>%
-        mutate(group = factor(group, levels = c("TD", "ASD"))) %>%
+        mutate(group = factor(group, levels = c("NA", "ASD"))) %>%
         group_by(num_item_id) %>%
         mutate(
             nproducedc = nproduced - mean(nproduced)
@@ -61,7 +61,7 @@ with_progress({
     g$m_logit <- future_map(g$m, function(m) {
             .data <- model.frame(m)
             .data$nproduced <- .data$nproduced * coef(m)["nproduced"]
-            m <- glm(produced ~ nproduced * group, data = .data, family = "binomial")
+            m <- glm(Produces ~ nproduced * group, data = .data, family = "binomial")
             p()
             return(m)
         })
@@ -81,7 +81,7 @@ ggsave("all_plots_logit.pdf", ml, width = 8.5, height = 11, units = "in")
 
 
 tmp <- d %>%
-    filter(produced) %>%
+    filter(Produces) %>%
     group_by(num_item_id, group) %>%
     summarize(
         vocab_size_mean = mean(nproduced),
@@ -101,7 +101,7 @@ q <- g %>%
     x_logit <- decision_boundary(m_logit)
     tbl <- tibble(
         scale = factor(1:2, levels = 1:2, labels = c("native", "logit")),
-        non_asd = c(x["TD"], x_logit["TD"]),
+        non_asd = c(x["NA"], x_logit["NA"]),
         asd = c(x["ASD"], x_logit["ASD"])
     )
     tbl$diff <- tbl$asd - tbl$non_asd
@@ -124,7 +124,7 @@ words_with_logit_diff <- q %>%
 write_csv(words_with_logit_diff, file = "words_with_logit_diff.csv")
 
 
-x <- expand_grid(group = factor(c("ASD", "TD")), nproduced = 20:600)
+x <- expand_grid(group = factor(c("ASD", "NA")), nproduced = 20:600)
 
 link <- map_dfr(g$m_logit, function(m, df) {
   df$p_logit <- predict(m, df, type = "link")
