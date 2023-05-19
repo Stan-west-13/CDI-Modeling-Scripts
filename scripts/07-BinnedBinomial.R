@@ -135,6 +135,7 @@ table(x_tbl2$num_bins, x_tbl2$ASD_more)
 
 
 
+library(reshape2)
 x_heat_ASD_more<- x_breakdown %>%
     select(vocab_bin, num_item_id,ASD_more) %>%
     filter(ASD_more == TRUE) %>%
@@ -154,7 +155,6 @@ x_heat_ASD_less<- x_breakdown %>%
     melt()
 
 View(x_heat_ASD_less)
-library(reshape2)
 heatmap(x_heat_ASD_more, Rowv = NA, Colv = NA)
 heatmap(x_heat_ASD_less)
 
@@ -168,3 +168,47 @@ ggplot(x_heat_ASD_less, aes(Var1,Var2, fill = value))+
 ggplot(x_heat_ASD_more, aes(Var1,Var2, fill = value))+
     geom_tile(color = "white")+
     ggtitle("More likely in autism")
+
+
+
+############ SRCLD bins by number of significant bins
+
+x_ASD_more<- x_breakdown %>%
+    select(vocab_bin, num_item_id,ASD_more) %>%
+    filter(ASD_more == TRUE) %>%
+    select(vocab_bin, num_item_id) %>%
+    group_by(num_item_id) %>% 
+    mutate(num_bins = length(num_item_id)) %>%
+    ungroup() %>%
+    group_by(vocab_bin, num_bins) %>%
+    mutate(sum_bins = length(num_item_id)) %>%
+    select(-num_item_id) %>%
+    unique() %>%
+    arrange(num_bins, vocab_bin) %>%
+    mutate(num_bins = as.factor(num_bins)) %>%
+    pivot_wider(.,
+                names_from = "num_bins",
+                values_from = "sum_bins",
+                values_fill = 0) %>%
+                as.matrix()
+
+
+x_ASD_less<- x_breakdown %>%
+    select(vocab_bin, num_item_id,ASD_more) %>%
+    filter(ASD_more == FALSE) %>%
+    select(vocab_bin, num_item_id) %>%
+    group_by(num_item_id) %>% 
+    mutate(num_bins = length(num_item_id)) %>%
+    ungroup() %>%
+    group_by(vocab_bin, num_bins) %>%
+    mutate(sum_bins = length(num_item_id)) %>%
+    select(-num_item_id) %>%
+    unique() %>%
+    arrange(num_bins, vocab_bin) %>%
+    mutate(num_bins = as.factor(num_bins)) %>%
+    pivot_wider(.,
+                names_from = "num_bins",
+                values_from = "sum_bins",
+                values_fill = 0) %>%
+                as.matrix()
+#######################################
