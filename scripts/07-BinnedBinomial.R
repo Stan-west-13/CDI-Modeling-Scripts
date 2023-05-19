@@ -135,10 +135,36 @@ table(x_tbl2$num_bins, x_tbl2$ASD_more)
 
 
 
-x_hist <- x_breakdown %>%
+x_heat_ASD_more<- x_breakdown %>%
+    select(vocab_bin, num_item_id,ASD_more) %>%
+    filter(ASD_more == TRUE) %>%
     select(vocab_bin, num_item_id) %>%
     table() %>%
-    apply(.,2,sum)
+    t() %>%
+    cor() %>%
+    melt()
+
+x_heat_ASD_less<- x_breakdown %>%
+    select(vocab_bin, num_item_id,ASD_more) %>%
+    filter(ASD_more == FALSE) %>%
+    select(vocab_bin, num_item_id) %>%
+    table() %>%
+    t() %>%
+    cor() %>%
+    melt()
+
+View(x_heat_ASD_less)
+library(reshape2)
+heatmap(x_heat_ASD_more, Rowv = NA, Colv = NA)
+heatmap(x_heat_ASD_less)
 
 
 
+
+ggplot(x_heat_ASD_less, aes(Var1,Var2, fill = value))+
+    geom_tile()+
+    ggtitle("Less likely in autism")
+
+ggplot(x_heat_ASD_more, aes(Var1,Var2, fill = value))+
+    geom_tile(color = "white")+
+    ggtitle("More likely in autism")

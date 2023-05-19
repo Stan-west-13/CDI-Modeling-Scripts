@@ -18,7 +18,11 @@ sig_binBinom_words_log <- sig_binBinom_words %>%
     left_join(.,select(cdi_metadata, num_item_id, word))
 
 sig_binBinom_words_ASD_more <- sig_binBinom_words_log %>%
-    filter(diff_logit > 0)
+    filter(diff_logit > 0) %>%
+    arrange(desc(abs(diff_native))) %>%
+    View
 
 sig_binBinom_words_ASD_less <- sig_binBinom_words_log %>%
-    filter(diff_logit < 0)
+    filter(diff_logit < 0) %>%
+    arrange(desc(abs(diff_native))) %>%
+    View
