@@ -103,3 +103,24 @@ ggplot(ASD_TD_data_graph, aes(x = nProduced, y = z_dist)) +
   labs(x = "Number of Words Produced", y = "Z-Score")+
   ggtitle("Median Indegree Trajectory")
 
+
+
+############## SRCLD plot
+ggplot(ASD_TD_data_graph, aes(x = nProduced, y = z_clust)) +
+  #geom_point(alpha = 0.5, aes(shape = group))+
+  theme_classic(base_size = 24)+
+  theme(axis.title = element_text(size = 24),
+        legend.position = c(.5, .3),
+        legend.background = element_rect(fill = "white", color = "black"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 24))+
+  #geom_line(dNew_CoxHae_child, mapping = aes(x = nProduced, y = predictions_clust, linetype = group), size = 3)+
+  geom_smooth(dNew_CoxHae_child,method = "lm",
+              formula = y ~ poly(x,3),
+              mapping = aes(x = nProduced, y = z_clust, fill = group),
+              color = "black",size = 2)+
+  scale_fill_manual(labels = c("Non-Austistic", "Autistic"), values = c("#FDD023", '#461D7C'))+
+  labs(x = "Number of Words Produced", y = "Z-Score")
+ggsave("Figures/clust_coefSRCLD.pdf", height =18, width = 18, units = "cm" ) 
+
+
