@@ -31,14 +31,18 @@ x_breakdown %>%
         geom_tile(aes(fill = sum_bins))+
         geom_text(aes(label = sum_bins))+
         scale_fill_gradient(low = "#FDD023", high = '#461D7C' )+
-        scale_x_discrete(labels = seq(50,600,50))+
+        scale_x_discrete(labels = seq(50,600,50), expand = c(0,0))+
+        scale_y_discrete(breaks = seq(1,9,1), expand = c(0,0))+
         labs(x = "vocabulary bin (upper limit)", y = "number of significant bins")+
         labs(fill = "words/bin")+
         theme(text=element_text(size = 24), legend.position = "none")
 ggsave("Figures/sig_words_mat_ASD_more.pdf", width =24,height = 12.5, units = "cm" )
 
-
-sum_bins_mat_ASD_less <- x_breakdown %>%
+x_add <- data.frame(vocab_bin = unique(x_breakdown$vocab_bin), 
+    num_bins = rep(10,12), 
+    sum_bins = rep(0,12))
+ 
+ x_breakdown %>%
     select(vocab_bin, num_item_id,ASD_more) %>%
     filter(ASD_more == FALSE) %>%
     select(vocab_bin, num_item_id) %>%
@@ -61,11 +65,13 @@ sum_bins_mat_ASD_less <- x_breakdown %>%
                     values_to = "sum_bins") %>%
         mutate(vocab_bin = factor(vocab_bin)) %>%
         mutate(num_bins = as.numeric(num_bins)) %>%
+        rbind(.,x_add) %>%        
     ggplot(.,aes(vocab_bin, num_bins))+
         geom_tile(aes(fill = sum_bins))+
         geom_text(aes(label = sum_bins))+
         scale_fill_gradient(low = "#FDD023", high = '#461D7C' )+
-        scale_x_discrete(labels = seq(50,600,50))+
+        scale_x_discrete(labels = seq(50,600,50), expand = c(0,0))+
+        scale_y_continuous(breaks = seq(1,12,1), expand = c(0,0))+
         labs(x = "vocabulary bin (upper limit)", y = "number of significant bins")+
         labs(fill = "words/bin")+
         theme(text=element_text(size = 24))
