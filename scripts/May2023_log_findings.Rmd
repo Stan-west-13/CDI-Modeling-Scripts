@@ -1,0 +1,44 @@
+
+
+```{r}
+load("data/significant_binBinom_words.Rdata")
+load("data/logit_diff_all.Rdata")
+load("data/cdi-metadata.Rdata")
+load("data/vocab_bin_significant_differences.csv")
+library(dplyr)
+library(rmarkdown)
+```
+
+
+```{r}
+sig_binBinom_words %>%
+    summarize(number_of_significant_words = length(num_item_id))
+
+q %>%
+    View()
+
+```
+
+
+```{r}
+joined_logit_binned <- q %>%
+    filter(num_item_id %in% sig_binBinom_words$num_item_id) %>%
+    left_join(.,sig_binBinom_words) %>%
+    left_join(.,select(cdi_metadata, num_item_id, word))
+
+words_outside_prediction <- joined_logit_binned %>%
+    filter(abs(diff_logit) > 1 &
+    non_asd_native < 20 |
+    non_asd_native > 600 |
+    asd_native < 20 |
+    asd_native > 600)
+
+words_within_prediction <- joined_logit_binned %>%
+    filter(abs(diff_logit) > 1 &
+    non_asd_native >= 20 &
+    non_asd_native <= 600 &
+    asd_native >= 20 &
+    asd_native <= 600)
+```
+
+
