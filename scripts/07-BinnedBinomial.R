@@ -78,7 +78,10 @@ x %>%
 
 x %>%
     filter(pval_fdr < .05) %>%
-    write_csv(file = "vocab_bin_significant_differences.csv")
+    write_csv(file = "data/vocab_bin_significant_differences.csv") 
+    save(x, file = "data/vocab_bin_significant_differences.Rdata")
+
+
 
 ggplot(tmp, aes(x = vocab_bin, y = n, fill = ASD_more)) +
     geom_bar(stat = "identity", position = position_stack()) +
@@ -92,7 +95,12 @@ ggplot(tmp, aes(x = vocab_bin, y = n, fill = ASD_more)) +
     theme(legend.title = element_blank(),
           legend.position = c(0.1,0.9),
           legend.justification = c(0.1,0.9),
-          )
+          )+
+    annotate("label", 
+        x=10.5, 
+        y = 150, 
+        label = "Total number of \nsignificant words = 389",
+        size = 7)
 ggsave("Figures/word_knowledge_bar.pdf", height = 24, width = 30, unit = "cm")  
 
 
