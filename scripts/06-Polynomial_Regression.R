@@ -7,8 +7,9 @@ load("data/ASD_NA_metadataNetstats_2023_RAN.Rdata")
 ASD_NA_metadataNetstats_2023_RAN_match_unique <- ASD_NA_metadataNetstats_2023_RAN %>%
   select(subjectkey, indegree, median_indegree, indegree_mean_RAN_mean,indegree_median_RAN_mean,
          indegree_median_RAN_sd, indegree_mean_RAN_sd, mean_distance, meandist_RAN_mean, meandist_RAN_sd,
-         clustering_coefficient, clustcoef_RAN_mean,clustcoef_RAN_sd, z_indegree_mean, z_indegree_med, z_clust, z_dist, nProduced,group) %>%
-  unique()
+         clustering_coefficient, clustcoef_RAN_mean,clustcoef_RAN_sd, z_indegree_mean, z_indegree_med, z_clust, z_dist, nProduced,group,sex) %>%
+  unique() %>%
+  ungroup()
 
 
 ## OrthPoly child plots and models
