@@ -34,13 +34,6 @@ joined_logit_binned <- q %>%
     left_join(.,sig_binBinom_words) %>%
     left_join(.,select(cdi_metadata, num_item_id, word))
 
-words_outside_prediction <- joined_logit_binned %>%
-    filter(abs(diff_logit) > 1 &
-    non_asd_native < 20 |
-    non_asd_native > 600 |
-    asd_native < 20 |
-    asd_native > 600)
-
 words_within_prediction <- joined_logit_binned %>%
     filter(abs(diff_logit) > 1 &
     non_asd_native >= 20 &
@@ -48,7 +41,7 @@ words_within_prediction <- joined_logit_binned %>%
     asd_native >= 20 &
     asd_native <= 600)
 
-## Graph for the child-oriented word assoication matrix
+## Graph for the child-oriented word association matrix
 child_net_graph <- CoxHae_child_network %>%
     graph_from_adjacency_matrix()
 
@@ -147,14 +140,11 @@ y <- d %>%
     left_join(., Lazenby_Nodewise_stats)%>%
     pivot_wider(c(vocab_bin, num_item_id),
     names_from = stat,
-    values_from = value)
+    values_from = value) %>%
+    left_join(.,)
 
 
-load("data/significant_binBinom_words.Rdata")
-load("data/logit_diff_all.Rdata")
-load("data/cdi-metadata.Rdata")
-View(q)
-library(dplyr)
+
 
 logit_greaterOne <- q %>%
     filter(abs(diff_logit) > 1 &
@@ -171,10 +161,8 @@ sig_binBinom_words_log <- sig_binBinom_words %>%
 
 sig_binBinom_words_ASD_more <- sig_binBinom_words_log %>%
     filter(diff_logit > 0) %>%
-    arrange(desc(abs(diff_native))) %>%
-    View
+    arrange(desc(abs(diff_native))) 
 
 sig_binBinom_words_ASD_less <- sig_binBinom_words_log %>%
     filter(diff_logit < 0) %>%
-    arrange(desc(abs(diff_native))) %>%
-    View
+    arrange(desc(abs(diff_native))) 
