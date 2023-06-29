@@ -31,14 +31,20 @@ words_outside_prediction <- joined_logit_binned %>%
     non_asd_native < 20 |
     non_asd_native > 600 |
     asd_native < 20 |
-    asd_native > 600)
+    asd_native > 600) %>%
+    mutate(ASD_more = ifelse(non_asd_native>asd_native, TRUE,FALSE))
 
 words_within_prediction <- joined_logit_binned %>%
     filter(abs(diff_logit) > 1 &
     non_asd_native >= 20 &
     non_asd_native <= 600 &
     asd_native >= 20 &
-    asd_native <= 600)
+    asd_native <= 600)%>%
+    mutate(ASD_more = ifelse(non_asd_native>asd_native, TRUE,FALSE))
+
+
+write.csv(words_outside_prediction, "data/words_outside_prediction.csv")
+write.csv(words_within_prediction, "data/words_within_prediction.csv")
 ```
 
 

@@ -89,9 +89,8 @@ ggplot(tmp, aes(x = vocab_bin, y = n, fill = ASD_more)) +
     theme_classic(base_size = 24)+
     labs(y = "number of words with significant difference",
          x = "vocabulary bin size (upper limit)")+
-    scale_fill_manual(values = c("#461D7C","#FDD023"),
-                      breaks = c("TRUE", "FALSE"),
-                      labels = c("more likely w/ autism", "less likely w/ autism"))+
+    scale_fill_grey(breaks = c("TRUE", "FALSE"),
+                         labels = c("more likely w/ autism", "less likely w/ autism"))+
     theme(legend.title = element_blank(),
           legend.position = c(0.1,0.9),
           legend.justification = c(0.1,0.9),

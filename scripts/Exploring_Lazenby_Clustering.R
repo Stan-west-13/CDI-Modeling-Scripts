@@ -32,7 +32,8 @@ netStats_Laz <- function(G) {
 joined_logit_binned <- q %>%
     filter(num_item_id %in% sig_binBinom_words$num_item_id) %>%
     left_join(.,sig_binBinom_words) %>%
-    left_join(.,select(cdi_metadata, num_item_id, word))
+    left_join(.,select(cdi_metadata, num_item_id, word, lexical_class, category)) %>%
+    mutate(ASD_more = ifelse(asd_native > non_asd_native, FALSE, TRUE))
 
 words_within_prediction <- joined_logit_binned %>%
     filter(abs(diff_logit) > 1 &
@@ -101,3 +102,5 @@ x <- map_dfr(vix, function(v, g) {
     t() %>%
     as.data.frame() %>%
     mutate(word = rownames(.), diff = transitivity(child_net_graph, type = "global") - V1)
+
+
