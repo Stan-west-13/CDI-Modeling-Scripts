@@ -15,7 +15,7 @@ source('R/filter_missing_data_and_words_produced.R')
 source('R/adds_nProduced_column.R')
 source('R/keep_best_assessments.R')
 source('R/makeDataFrame_out_of_best_record.R')
-## Load data ###################################################
+## 1. Load data ###################################################
 load("data/cdi-metadata.Rdata")
 load("data/words_gestures_fix_codes.Rdata")
 ## Latest CDI pull from NDAR
@@ -32,7 +32,11 @@ names(word_dict_S) <- c('num_item_id', 'word_code', 'word1', 'word2', 'WordBank1
 word_dict_WG <- read.csv("data/word_dict_WG.csv")
 names(word_dict_WG) <- c('num_item_id','word_code', 'word1', 'word2', 'WordBank1', 'WordBank2', 'category', 'class', 'classForm', 'classEH', 'classRS', 'classEHse','classVerbs', 'CDI_Metadata_compatible')
 
-## Selecting vocabulary checkists and other demographic info.
+
+
+
+
+## 2. Selecting vocabulary checkists and other demographic info. ########################################
 select_columns <- c('subjectkey', 'interview_age', 'sex','interview_date','mcs_vc_total','mci_sentences02_id', as.character(word_dict_S$word_code))
 mci_sentences02 <- mci_sentences02[select_columns] %>%
   filter(!duplicated(.)) %>%
@@ -44,11 +48,11 @@ mci_words_gestures <- mci_words_gestures[select_columns] %>%
   filter(!duplicated(.))%>%
   mutate(form = "WG",
          interview_age = as.integer(interview_age))
+####################################################################################################
 
 
 
-
-## Fix split data ###################################################3
+## 3. Fix split data ###################################################3
 ## Fix split data for Words and Gestures
 WG_half <- data.frame(
   subjectkey=c(
@@ -92,9 +96,9 @@ row_ind <- which(
 z <- as.vector(is.na(mci_sentences02[row_ind[1],]))
 mci_sentences02[row_ind[1],z] <- mci_sentences02[row_ind[2],z]
 mci_sentences02 <- mci_sentences02[-row_ind[2],]
-########################################################################33
+########################################################################
 
-## Filter only kids with ASD older than 11 months & missing data #################
+## 4. Filter out kids younger than 11 months and missing data #################
 
 ASD_wg <- mci_words_gestures %>%
   filter(subjectkey %in% ASD_subjects$subjectkey & interview_age >= 11) %>%
@@ -107,7 +111,9 @@ ASD_ws <- mci_sentences02 %>%
   mutate(empty = Identify_empty_checklist(.[,-c(1:6)], 0.9)) %>%
   filter(empty == FALSE | subjectkey == "NDARMK278CK2")
 
-## Fix incorrect produces and understand codes codes
+############################################################################
+
+## 5. Fix incorrect codes #################################################
 
 ASD_wg_fix <- ASD_wg %>%
   right_join(., wg_switch_codes, by = c("subjectkey", "interview_age", "interview_date")) %>%
@@ -132,7 +138,9 @@ ASD_wg_correct <- ASD_wg %>%
   filter(is.na(fix))
 
 ASD_wg <- rbind(ASD_wg_fix, ASD_wg_correct)
-## Long format data and add other info #####################################
+#####################################################################################
+
+## 6. Long format data and filter to between 20 and 600 words produced #####################################
 ASD_wg_long <- ASD_wg %>%
   pivot_longer(.,
                cols = matches("^mcg_vc?[0-9]"),
@@ -146,7 +154,9 @@ ASD_wg_long <- ASD_wg %>%
   group_by(subjectkey, interview_age, interview_date, mci_words_gestures01_id) %>%
   mutate(nProduced = sum(Produces)) %>%
   filter(nProduced >= 20 & nProduced <= 600) %>%
-  left_join(.,word_dict_WG, by = "word_code")
+  left_join(.,word_dict_WG, by = "word_code") %>%
+  ungroup() %>%
+  select(-mci_words_gestures01_id, -fix, -mcg_vc_totpr)
 
 ASD_ws_long <- ASD_ws %>%
   pivot_longer(.,
@@ -161,7 +171,9 @@ ASD_ws_long <- ASD_ws %>%
   group_by(subjectkey, interview_age, interview_date, mci_sentences02_id) %>%
   mutate(nProduced = sum(Produces)) %>%
   filter(nProduced >= 20 & nProduced <= 600) %>%
-  left_join(.,word_dict_S, by = "word_code")
+  left_join(.,word_dict_S, by = "word_code") %>%
+  ungroup() %>%
+  select(-mci_sentences02_id, -mcs_vc_total)
 
 
 ASD_all_long <- rbind(ASD_wg_long, ASD_ws_long) %>%
@@ -174,11 +186,12 @@ ASD_all_long <- rbind(ASD_wg_long, ASD_ws_long) %>%
   mutate(newest_rec = interview_date == max(interview_date)) %>%
   group_by(subjectkey, interview_age) %>%
   filter(newest_rec == TRUE) %>%
-  ungroup()
+  ungroup() %>%
+  unique()
 
 
 save(ASD_all_long, file = "data/ASD_long_data.Rdata")
-
+###########################################################################
 
 x <- ASD_all_long %>%
   group_by(subjectkey,form) %>%
@@ -188,52 +201,3 @@ x <- ASD_all_long %>%
 
 
 
-load("data/cdi-metadata.Rdata")
-
-
-
-
-
-ASD_wg_long <- ASD_wg %>%
-  pivot_longer(.,
-               cols = matches("^mcg_vc?[0-9]"),
-               values_to = "response_code",
-               names_to = "word_code") %>%
-  mutate(response_code = as.numeric(response_code),
-         interview_age = as.numeric(interview_age),
-         interview_date = as.Date(interview_date, form = "%m/%d/%Y")) %>%
-  mutate_at(vars("response_code"), ~replace_na(.,0)) %>%
-  mutate(Produces = ifelse(response_code == 2, TRUE, FALSE),
-         Understands = ifelse(response_code == 1, TRUE, FALSE)) %>%
-  group_by(subjectkey, interview_date, interview_age) %>%
-  mutate(nUnderstood = sum(Understands),
-          nProduced = sum(Produces)) %>%
-  left_join(.,word_dict_WG, by = "word_code") %>%
-  ungroup() %>%
-  group_by(subjectkey) %>%
-  mutate(best = ifelse(nUnderstood == max(nUnderstood), TRUE, FALSE)) %>%
-  ungroup() %>% 
-  filter(interview_age > 59, nProduced <= 20)
-
-x <- mci_words_gestures %>%
-  filter(interview_age > 59) %>%
-  mutate(mcg_vc_totpr = as.numeric(mcg_vc_totpr)) %>%
-  filter(mcg_vc_totpr <= 20) %>%
-  pivot_longer(.,
-               cols = matches("^mcg_vc?[0-9]"),
-               values_to = "response_code",
-               names_to = "word_code")%>%
-  mutate(response_code = as.numeric(response_code),
-         interview_age = as.numeric(interview_age),
-         interview_date = as.Date(interview_date, form = "%m/%d/%Y")) %>%
-  mutate_at(vars("response_code"), ~replace_na(.,0)) %>%
-  mutate(Produces = ifelse(response_code == 2, TRUE, FALSE),
-         Understands = ifelse(response_code == 1, TRUE, FALSE)) %>%
-  group_by(subjectkey, interview_date, interview_age) %>%
-  mutate(nUnderstood = sum(Understands),
-          nProduced = sum(Produces)) %>%
-          filter(nProduced <= 20)
-
-
-
-ASD_subjects %>% filter(subjectkey == "NDARYR033PZV")
